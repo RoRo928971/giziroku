@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>議事録作成アプリ</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ========== ヘッダー ========== -->
+  <header class="app-header">
+    <div class="app-header__inner">
+      <h1 class="app-header__title">📝 議事録作成アプリ</h1>
+      <div class="app-header__actions">
+        <button id="btn-new" class="btn btn--ghost" type="button">新規作成</button>
+        <button id="btn-save" class="btn btn--primary" type="button">保存</button>
+        <button id="btn-pdf" class="btn btn--accent" type="button">PDF出力</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ========== サイドバー（保存済み一覧） ========== -->
+    <aside class="sidebar">
+      <div class="sidebar__head">
+        <h2>保存済みの議事録</h2>
+      </div>
+      <ul id="saved-list" class="saved-list"></ul>
+      <div class="sidebar__foot">
+        <button id="btn-export" class="btn btn--ghost btn--sm" type="button">JSONバックアップ</button>
+        <label class="btn btn--ghost btn--sm" for="import-file">JSON読込</label>
+        <input id="import-file" type="file" accept="application/json" hidden />
+      </div>
+    </aside>
+
+    <!-- ========== 入力フォーム ========== -->
+    <main class="editor">
+      <form id="minutes-form" class="form" autocomplete="off">
+        <section class="form__section">
+          <h2 class="form__section-title">基本情報</h2>
+          <div class="field">
+            <label for="title">会議名 <span class="req">*</span></label>
+            <input id="title" name="title" type="text" placeholder="例）第3回 営業企画定例会議" required />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="date">日付</label>
+              <input id="date" name="date" type="date" />
+            </div>
+            <div class="field">
+              <label for="startTime">開始</label>
+              <input id="startTime" name="startTime" type="time" />
+            </div>
+            <div class="field">
+              <label for="endTime">終了</label>
+              <input id="endTime" name="endTime" type="time" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="location">場所</label>
+              <input id="location" name="location" type="text" placeholder="例）本社 5F 会議室A / オンライン" />
+            </div>
+            <div class="field">
+              <label for="author">作成者</label>
+              <input id="author" name="author" type="text" placeholder="例）山田 太郎" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="attendees">出席者</label>
+              <input id="attendees" name="attendees" type="text" placeholder="カンマ区切り 例）山田, 鈴木, 佐藤" />
+            </div>
+            <div class="field">
+              <label for="absentees">欠席者</label>
+              <input id="absentees" name="absentees" type="text" placeholder="カンマ区切り 例）田中" />
+            </div>
+          </div>
+        </section>
+
+        <section class="form__section">
+          <h2 class="form__section-title">議題・議事内容</h2>
+          <div id="agenda-list" class="repeat-list"></div>
+          <button id="btn-add-agenda" class="btn btn--ghost btn--sm" type="button">＋ 議題を追加</button>
+        </section>
+
+        <section class="form__section">
+          <h2 class="form__section-title">決定事項</h2>
+          <div class="field">
+            <textarea id="decisions" name="decisions" rows="4" placeholder="決定した内容を箇条書き（1行＝1項目）で入力"></textarea>
+          </div>
+        </section>
+
+        <section class="form__section">
+          <h2 class="form__section-title">アクションアイテム（ToDo）</h2>
+          <div class="action-table">
+            <div class="action-table__head">
+              <span>内容</span>
+              <span>担当者</span>
+              <span>期限</span>
+              <span></span>
+            </div>
+            <div id="action-list"></div>
+          </div>
+          <button id="btn-add-action" class="btn btn--ghost btn--sm" type="button">＋ ToDoを追加</button>
+        </section>
+
+        <section class="form__section">
+          <h2 class="form__section-title">その他・次回予定</h2>
+          <div class="field">
+            <label for="nextMeeting">次回会議</label>
+            <input id="nextMeeting" name="nextMeeting" type="text" placeholder="例）2026/06/25 14:00 〜 本社 会議室A" />
+          </div>
+          <div class="field">
+            <label for="notes">備考</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="補足事項など"></textarea>
+          </div>
+        </section>
+      </form>
+    </main>
+
+    <!-- ========== プレビュー ========== -->
+    <section class="preview-pane">
+      <div class="preview-pane__bar">
+        <span>プレビュー</span>
+      </div>
+      <div id="preview" class="preview-scroll"></div>
+    </section>
+  </div>
+
+  <!-- ========== 印刷用（PDF出力）領域 ========== -->
+  <div id="print-area" class="print-area"></div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
