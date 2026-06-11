@@ -415,6 +415,105 @@
   }
 
   /* ------------------------------------------------------------------ *
+   * AIによる議事録整形
+   * ------------------------------------------------------------------ */
+  function applyAiData(ai, merge) {
+    if (!ai) return;
+    if (!merge) {
+      // 上書きモード：AIの結果でフォームを置き換える
+      fillForm({
+        title: ai.title,
+        date: ai.date,
+        startTime: ai.startTime,
+        endTime: ai.endTime,
+        location: ai.location,
+        author: ai.author,
+        attendees: ai.attendees,
+        absentees: ai.absentees,
+        agendas: ai.agendas,
+        decisions: ai.decisions,
+        actions: ai.actions,
+        nextMeeting: ai.nextMeeting,
+        notes: ai.notes,
+      });
+      renderPreview();
+      return;
+    }
+
+    // 追記モード：空欄のみ補完し、議題・ToDo・箇条書きは追加する
+    const setIfEmpty = (id, val) => {
+      if (val && !$("#" + id).value.trim()) $("#" + id).value = val;
+    };
+    setIfEmpty("title", ai.title);
+    setIfEmpty("date", ai.date);
+    setIfEmpty("startTime", ai.startTime);
+    setIfEmpty("endTime", ai.endTime);
+    setIfEmpty("location", ai.location);
+    setIfEmpty("author", ai.author);
+    setIfEmpty("attendees", ai.attendees);
+    setIfEmpty("absentees", ai.absentees);
+    setIfEmpty("nextMeeting", ai.nextMeeting);
+
+    (ai.agendas || []).forEach((a) => {
+      if (a && (a.topic || a.body)) addAgenda(a);
+    });
+    (ai.actions || []).forEach((a) => {
+      if (a && (a.task || a.owner || a.due)) addAction(a);
+    });
+
+    const appendLines = (id, val) => {
+      if (!val) return;
+      const cur = $("#" + id).value.trim();
+      $("#" + id).value = cur ? cur + "\n" + val : val;
+    };
+    appendLines("decisions", ai.decisions);
+    appendLines("notes", ai.notes);
+
+    renderPreview();
+  }
+
+  function setAiStatus(msg, kind) {
+    const el = $("#ai-status");
+    el.className = "ai-panel__status" + (kind ? " is-" + kind : "");
+    if (kind === "loading") {
+      el.innerHTML = `<span class="spinner"></span>${escapeHtml(msg)}`;
+    } else {
+      el.textContent = msg;
+    }
+  }
+
+  async function runAiSummarize() {
+    const text = $("#ai-input").value.trim();
+    if (!text) {
+      setAiStatus("会議メモを入力してください。", "error");
+      return;
+    }
+    const merge = $("#ai-merge").checked;
+    const btn = $("#ai-run");
+    btn.disabled = true;
+    setAiStatus("AIが議事録を整形しています…（数十秒かかる場合があります）", "loading");
+
+    try {
+      const res = await fetch("/api/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          context: { title: $("#title").value.trim(), date: $("#date").value },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "整形に失敗しました。");
+      applyAiData(json.data, merge);
+      setAiStatus("整形が完了しました。内容を確認・修正してください。", "success");
+    } catch (err) {
+      setAiStatus(err.message || "整形に失敗しました。", "error");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  /* ------------------------------------------------------------------ *
    * 変更ハンドリング（プレビュー更新）
    * ------------------------------------------------------------------ */
   let renderTimer = null;
@@ -442,6 +541,16 @@
     });
     $("#btn-save").addEventListener("click", saveCurrent);
     $("#btn-new").addEventListener("click", newRecord);
+
+    // AI整形パネル
+    $("#ai-toggle").addEventListener("click", () => {
+      const body = $("#ai-body");
+      const hidden = body.hasAttribute("hidden");
+      if (hidden) body.removeAttribute("hidden");
+      else body.setAttribute("hidden", "");
+      $("#ai-toggle").textContent = hidden ? "閉じる" : "開く";
+    });
+    $("#ai-run").addEventListener("click", runAiSummarize);
     $("#btn-pdf").addEventListener("click", exportPdf);
     $("#btn-export").addEventListener("click", exportJson);
     $("#import-file").addEventListener("change", (e) => {

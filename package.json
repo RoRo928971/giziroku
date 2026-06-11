@@ -12,5 +12,8 @@
     "議事録",
     "pdf"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1"
+  }
 }

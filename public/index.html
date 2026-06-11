@@ -35,6 +35,29 @@
 
     <!-- ========== 入力フォーム ========== -->
     <main class="editor">
+      <!-- AI整形パネル -->
+      <section class="ai-panel">
+        <div class="ai-panel__head">
+          <h2 class="ai-panel__title">🤖 AIで議事録を整形</h2>
+          <button id="ai-toggle" class="btn btn--ghost btn--sm" type="button">開く</button>
+        </div>
+        <div id="ai-body" class="ai-panel__body" hidden>
+          <p class="ai-panel__desc">
+            会議のメモ書きや文字起こしを貼り付けて「整形する」を押すと、議題・決定事項・ToDoなどに自動で振り分けます。
+          </p>
+          <textarea id="ai-input" rows="6"
+            placeholder="例）今日の定例。来期の販促について議論。山田さんがSNS案を提案、予算は30万で合意。鈴木が来週金曜までに広告案を作成。次回は6/25 14時〜。"></textarea>
+          <div class="ai-panel__actions">
+            <label class="ai-panel__merge">
+              <input type="checkbox" id="ai-merge" />
+              既存の入力内容に追記する（オフで上書き）
+            </label>
+            <button id="ai-run" class="btn btn--accent btn--sm" type="button">整形する</button>
+          </div>
+          <div id="ai-status" class="ai-panel__status" aria-live="polite"></div>
+        </div>
+      </section>
+
       <form id="minutes-form" class="form" autocomplete="off">
         <section class="form__section">
           <h2 class="form__section-title">基本情報</h2>
